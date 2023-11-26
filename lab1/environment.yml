@@ -2,10 +2,10 @@
 name: IST_DL21_Env
 dependencies:
   - python=3.8
-  - numpy Y
-  - pillow Y
-  - scikit-learn Y
-  - pytorch Y
+  - numpy
+  - pillow
+  - scikit-learn
+  - pytorch 
   - torchvision
   - torchtext 
   - huggingface::transformers
