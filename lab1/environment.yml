@@ -1,13 +1,11 @@
-
 name: IST_DL21_Env
 dependencies:
   - python=3.8
   - numpy
   - pillow
   - scikit-learn
-  - pytorch 
+  - pytorch
   - torchvision
-  - torchtext 
   - huggingface::transformers
   - notebook
   - nb_conda_kernels
@@ -15,4 +13,4 @@ dependencies:
   - pip
   - pandas
   - pip:
-    - timm
+      - timm
