@@ -82,13 +82,27 @@ class MLP(object):
     # in main().
     def __init__(self, n_classes, n_features, hidden_size):
         # Initialize an MLP with a single hidden layer.
-        raise NotImplementedError
+        units = [n_features, hidden_size, n_classes]
+        b0 = np.zeros((units[1], 1))
+        W0 = np.random.normal(0.1, 0.1*0.1, (units[1], units[0]))
+        b1 = np.zeros((units[2], 1))
+        W1 = np.random.normal(0.1, 0.1*0.1, (units[2], units[1]))
+        self.W = [W0, W1]
+        self.b = [b0, b1]
+        #shaep = [self.W[0].shape, self.W[1].shape, self.b[0].shape, self.b[1].shape]
+        #print(shaep)
 
     def predict(self, X):
         # Compute the forward pass of the network. At prediction time, there is
         # no need to save the values of hidden nodes, whereas this is required
         # at training time.
-        raise NotImplementedError
+
+        h0 = X
+        z1 = self.W[0].dot(h0.T) + self.b[0]
+        h1 = np.maximum(0, z1)
+        z2 = self.W[1].dot(h1) + self.b[1]
+        y_hat = z2
+        return y_hat
 
     def evaluate(self, X, y):
         """
@@ -105,7 +119,13 @@ class MLP(object):
         """
         Dont forget to return the loss of the epoch.
         """
-        raise NotImplementedError
+        y_hat = self.predict(X)
+        p = np.exp(y_hat) / np.sum(np.exp(y_hat))
+        print("BANANA: ",p.shape, y.shape)
+        #loss = -y.dot(np.log(p))
+        #print(loss)
+        return 1
+        #raise NotImplementedError
 
 
 def plot(epochs, train_accs, val_accs):
