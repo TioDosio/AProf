@@ -38,28 +38,22 @@ class LinearModel(object):
         return n_correct / n_possible
 
 
-class Perceptron(LinearModel):
+class Perceptron(LinearModel): #falta adicionar o bias?
     def update_weight(self, x_i, y_i, **kwargs):
-        """
-        x_i (n_features): a single training example
-        y_i (scalar): the gold label for that example
-        other arguments are ignored
-        """
-        # Q1.1a
+    
         eta=1
         y_hat = np.argmax(self.W.dot(x_i))
         if y_hat != y_i:
             self.W[y_i,:] += eta*x_i
             self.W[y_hat,:] -= eta*x_i
-            
-class LogisticRegression(LinearModel):
+
+class LogisticRegression(LinearModel): #fala adicionar o bias?
     def update_weight(self, x_i, y_i, learning_rate=0.001):
         """
         x_i (n_features): a single training example
         y_i: the gold label for that example
         learning_rate (float): keep it at the default value for your plots
         """
-        # Q1.1b
         eta=learning_rate
         label_scores = np.expand_dims(self.W.dot(x_i), axis = 1)
 
@@ -73,35 +67,83 @@ class LogisticRegression(LinearModel):
         
         # SGD update. W is num_labels x num_features.
         self.W = self.W + eta * (y_one_hot - label_probabilities).dot(np.expand_dims(x_i, axis = 1).T)
-        
+
+        # Q1.1b
+
 
 class MLP(object):
     # Q3.2b. This MLP skeleton code allows the MLP to be used in place of the
     # linear models with no changes to the training loop or evaluation code
     # in main().
     def __init__(self, n_classes, n_features, hidden_size):
-        # Initialize an MLP with a single hidden layer.
-        units = [n_features, hidden_size, n_classes]
-        b0 = np.zeros((units[1],1))
-        W0 = np.random.normal(0.1, 0.1*0.1, (units[1], units[0]))
-        b1 = np.zeros((units[2],1))
-        W1 = np.random.normal(0.1, 0.1*0.1, (units[2], units[1]))
-        self.W = [W0, W1]
-        self.b = [b0, b1]
-        shape = [self.W[0].shape, self.W[1].shape, self.b[0].shape, self.b[1].shape]
-        print("shape: ",shape)
+        self.W1 = np.random.normal(0.1, 0.1,(hidden_size, n_features))
+        self.W2 = np.random.normal(0.1, 0.1,(n_classes, hidden_size))
+        self.weights = [self.W1, self.W2]
+        self.hidden_size = hidden_size
+        self.b1 = np.zeros(hidden_size)
+        self.b2 = np.zeros(n_classes)
+        self.bias = [self.b1, self.b2]
 
     def predict(self, X):
-        # Compute the forward pass of the network. At prediction time, there is
-        # no need to save the values of hidden nodes, whereas this is required
-        # at training time.
+        predicted_labels = []
+        for x in X:
+            # Compute forward pass and get the class with the highest probability
+            output, _ = self.forward(x)
+            y_hat = np.argmax(output)
+            predicted_labels.append(y_hat)
+        predicted_labels = np.array(predicted_labels)
+        return predicted_labels
 
-        h0 = X
-        z1 = self.W[0].dot(h0.T) + self.b[0]
-        h1 = np.maximum(0, z1)
-        z2 = self.W[1].dot(h1) + self.b[1]
+    def forward(self, X):
+        num_layers = len(self.weights)
+        hiddens = []
+        # compute hidden layers
+        for i in range(num_layers):
+                h = X if i == 0 else hiddens[i-1]
+                z = self.weights[i].dot(h) + self.bias[i]
+                if i < num_layers-1:  # Assuming the output layer has no activation.
+                    hiddens.append( z )
+        #compute output
+        output = z
+        #print(output.shape)
+        return output, hiddens
 
-        return z2
+    def compute_loss(self, output, y):
+        # compute loss
+        probs = np.exp(output - np.max(output)) / np.sum(np.exp(output - np.max(output)))
+        loss = -y.dot(np.log(probs + 1e-5))
+        
+        return loss
+
+    def backward(self, x, y_oneh, output, hiddens):
+        #print ("y:", y_oneh)
+        num_layers = len(self.weights)
+        z = output
+        probs = np.exp(output - np.max(output)) / np.sum(np.exp(output - np.max(output)))
+        grad_z = probs - y_oneh 
+        
+        grad_weights = []
+        grad_biases = []
+        
+        # Backpropagate gradient computations 
+        for i in range(num_layers-1, -1, -1):
+            
+            # Gradient of hidden parameters.
+            h = x if i == 0 else hiddens[i-1]
+            grad_weights.append(grad_z[:, None].dot(h[:, None].T))
+            grad_biases.append(grad_z)
+            
+            # Gradient of hidden layer below.
+            grad_h = self.weights[i].T.dot(grad_z)
+
+            # Gradient of hidden layer below before activation.
+            grad_z = grad_h * (h > 0)   # Grad of loss
+
+        # Making gradient vectors have the correct order
+        grad_weights.reverse()
+        grad_biases.reverse()
+        return grad_weights, grad_biases
+
 
     def evaluate(self, X, y):
         """
@@ -114,26 +156,33 @@ class MLP(object):
         n_possible = y.shape[0]
         return n_correct / n_possible
 
-    def train_epoch(self, X, y, learning_rate=0.001):
-        """
-        Don't forget to return the loss of the epoch.
-        """
-        z2 = self.predict(X)
-        y = np.squeeze(y)  # This removes the singleton dimension from y
-        loss = 0.5 * np.sum((z2 - y)**2)
 
-
-        #foward propagation
-        h0 = X
-        z1 = self.W[0].dot(h0.T) + self.b[0]
-        h1 = np.maximum(0, z1)
-        z2 = self.W[1].dot(h1) + self.b[1]
-        
-        #backpropagation
-
-
-        return loss
-        
+    def train_epoch(self, X, y_train, learning_rate=0.001):
+        n_classes = len(np.unique(y_train))
+        num_layers = len(self.weights)
+        total_loss = 0
+        one_hot = np.zeros((np.size(y_train, 0), n_classes))
+        for i in range(np.size(y_train, 0)):
+            one_hot[i, y_train[i]] = 1
+        y_train_ohe = one_hot
+        for x, y in zip(X, y_train_ohe):
+            # Compute forward pass
+            output, hiddens = self.forward(x)
+            
+            # Compute Loss and Update total loss
+            loss = self.compute_loss(output, y)
+            total_loss+=loss
+            # Compute backpropagation
+            #print (y_oneh)
+            grad_weights, grad_biases = self.backward(x, y, output, hiddens)
+            
+            # Update weights
+            
+            for i in range(num_layers):
+                self.weights[i] -= learning_rate*grad_weights[i]
+                self.bias[i] -= learning_rate*grad_biases[i]
+                
+        return total_loss
 
 
 
@@ -202,6 +251,7 @@ def main():
                 train_y,
                 learning_rate=opt.learning_rate
             )
+            print("here")
         else:
             model.train_epoch(
                 train_X,

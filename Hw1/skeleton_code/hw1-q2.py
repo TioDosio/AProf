@@ -8,9 +8,12 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from matplotlib import pyplot as plt
+import numpy as np
 
 import utils
-
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+np.random.seed(0)
+torch.manual_seed(0)
 
 # Q2.1
 class LogisticRegression(nn.Module):
@@ -26,9 +29,9 @@ class LogisticRegression(nn.Module):
         pytorch to make weights and biases, have a look at
         https://pytorch.org/docs/stable/nn.html
         """
-        super().__init__()
-        # In a pytorch module, the declarations of layers needs to come after
-        # the super __init__ line, otherwise the magic doesn't work.
+        super(LogisticRegression, self).__init__()
+        self.layer = nn.Linear(n_features, n_classes)
+        self.activation = nn.Sigmoid()
 
     def forward(self, x, **kwargs):
         """
@@ -44,9 +47,12 @@ class LogisticRegression(nn.Module):
         forward pass -- this is enough for it to figure out how to do the
         backward pass.
         """
-        raise NotImplementedError
+        Z = self.layer(x)
+        P = self.activation(Z)
+        return P
 
 
+# Q2.2
 # Q2.2
 class FeedforwardNetwork(nn.Module):
     def __init__(
@@ -64,9 +70,25 @@ class FeedforwardNetwork(nn.Module):
         attributes that each FeedforwardNetwork instance has. Note that nn
         includes modules for several activation functions and dropout as well.
         """
-        super().__init__()
-        # Implement me!
-        raise NotImplementedError
+        super(FeedforwardNetwork, self).__init__()
+        self.layers = nn.ModuleList()
+        if activation_type == 'relu':
+            self.activation = nn.ReLU()
+        elif activation_type == 'tanh':
+            self.activation = nn.Tanh()
+        # Input layer
+        self.layers.append(nn.Linear(n_features, hidden_size))
+        self.layers.append(self.activation)
+        self.layers.append(nn.Dropout(dropout))
+        
+        # Hidden layers
+        for _ in range(layers - 1):
+            self.layers.append(nn.Linear(hidden_size, hidden_size))
+            self.layers.append(nn.ReLU())
+            self.layers.append(nn.Dropout(dropout))
+        
+        # Output layer
+        self.layers.append(nn.Linear(hidden_size, n_classes))
 
     def forward(self, x, **kwargs):
         """
@@ -76,9 +98,10 @@ class FeedforwardNetwork(nn.Module):
         the output logits from x. This will include using various hidden
         layers, pointwise nonlinear functions, and dropout.
         """
-        raise NotImplementedError
-
-
+        for layer in self.layers:
+            x = layer(x)
+        return x
+    
 def train_batch(X, y, model, optimizer, criterion, **kwargs):
     """
     X (n_examples x n_features)
@@ -97,7 +120,12 @@ def train_batch(X, y, model, optimizer, criterion, **kwargs):
     This function should return the loss (tip: call loss.item()) to get the
     loss as a numerical value that is not part of the computation graph.
     """
-    raise NotImplementedError
+    optimizer.zero_grad()
+    predictions = model(X)
+    loss = criterion(predictions, y)
+    loss.backward()
+    optimizer.step()
+    return loss.item()
 
 
 def predict(model, X):
@@ -126,7 +154,7 @@ def evaluate(model, X, y, criterion):
 
 def plot(epochs, plottables, name='', ylim=None):
     """Plot the plottables over the epochs.
-    
+
     Plottables is a dictionary mapping labels to lists of values.
     """
     plt.clf()
@@ -247,6 +275,7 @@ def main():
         ylim = (0., 1.2)
     else:
         raise ValueError(f"Unknown model {opt.model}")
+    print("bananinhas das boas")
     plot(epochs, losses, name=f'{opt.model}-training-loss-{config}', ylim=ylim)
     accuracy = { "Valid Accuracy": valid_accs }
     plot(epochs, accuracy, name=f'{opt.model}-validation-accuracy-{config}', ylim=(0., 1.))
