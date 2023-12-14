@@ -180,7 +180,7 @@ def main():
     parser.add_argument('-epochs', default=20, type=int,
                         help="""Number of epochs to train for. You should not
                         need to change this value for your plots.""")
-    parser.add_argument('-batch_size', default=1, type=int,
+    parser.add_argument('-batch_size', default=16, type=int,
                         help="Size of training batch.")
     parser.add_argument('-learning_rate', type=float, default=0.01)
     parser.add_argument('-l2_decay', type=float, default=0)
@@ -280,9 +280,10 @@ def main():
         ylim = (0., 1.2)
     else:
         raise ValueError(f"Unknown model {opt.model}")
-    plot(epochs, losses, name=f'{opt.model}-training-loss-{config}', ylim=ylim)
+    val_acc_rounded = round(test_acc, 4)
+    plot(epochs, losses, name=f'{opt.model}-training-loss-{config}-val_acc-{val_acc_rounded}', ylim=ylim)
     accuracy = { "Valid Accuracy": valid_accs }
-    plot(epochs, accuracy, name=f'{opt.model}-validation-accuracy-{config}', ylim=(0., 1.))
+    plot(epochs, accuracy, name=f'{opt.model}-validation-accuracy-{config}-val_acc-{val_acc_rounded}', ylim=(0., 1.))
 
 
 if __name__ == '__main__':
