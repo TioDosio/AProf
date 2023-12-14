@@ -1,11 +1,11 @@
 import subprocess
 
 def run_program(learning_rate):
-    command = f"time python hw1-q2.py mlp -learning_rate {learning_rate}"
+    command = f"time python3 hw1-q2.py mlp -learning_rate {learning_rate} -batch_size 16"
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout, result.stderr
 
-learning_rates = [1, 0.1, 0.01]
+learning_rates = [1]
 
 with open('output.txt', 'w') as file:
     for rate in learning_rates:
@@ -14,3 +14,4 @@ with open('output.txt', 'w') as file:
         file.write(f"=== STDOUT ===\n{stdout}\n")
         file.write(f"=== STDERR ===\n{stderr}\n")
         file.write("=" * 40 + "\n")
+print("Done!")

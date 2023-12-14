@@ -8,13 +8,9 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from matplotlib import pyplot as plt
-import numpy as np
 
 import utils
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print(DEVICE)
-np.random.seed(0)
-torch.manual_seed(0)
+
 
 # Q2.1
 class LogisticRegression(nn.Module):
@@ -30,8 +26,9 @@ class LogisticRegression(nn.Module):
         pytorch to make weights and biases, have a look at
         https://pytorch.org/docs/stable/nn.html
         """
-        super(LogisticRegression, self).__init__()
-        self.layer = nn.Linear(n_features, n_classes)
+        super().__init__()
+        # In a pytorch module, the declarations of layers needs to come after
+        # the super __init__ line, otherwise the magic doesn't work.
 
     def forward(self, x, **kwargs):
         """
@@ -45,10 +42,9 @@ class LogisticRegression(nn.Module):
 
         One nice thing about pytorch is that you only need to define the
         forward pass -- this is enough for it to figure out how to do the
-        backward pass.  
+        backward pass.
         """
-        Z = self.layer(x)
-        return Z
+        raise NotImplementedError
 
 
 # Q2.2
@@ -68,25 +64,9 @@ class FeedforwardNetwork(nn.Module):
         attributes that each FeedforwardNetwork instance has. Note that nn
         includes modules for several activation functions and dropout as well.
         """
-        super(FeedforwardNetwork, self).__init__()
-        self.layers = nn.ModuleList()
-        if activation_type == 'relu':
-            self.activation = nn.ReLU()
-        elif activation_type == 'tanh':
-            self.activation = nn.Tanh()
-        # Input layer
-        self.layers.append(nn.Linear(n_features, hidden_size))
-        self.layers.append(self.activation)
-        self.layers.append(nn.Dropout(dropout))
-        
-        # Hidden layers
-        for _ in range(layers):
-            self.layers.append(nn.Linear(hidden_size, hidden_size))
-            self.layers.append(nn.ReLU())
-            self.layers.append(nn.Dropout(dropout))
-        
-        # Output layer
-        self.layers.append(nn.Linear(hidden_size, n_classes))
+        super().__init__()
+        # Implement me!
+        raise NotImplementedError
 
     def forward(self, x, **kwargs):
         """
@@ -96,10 +76,9 @@ class FeedforwardNetwork(nn.Module):
         the output logits from x. This will include using various hidden
         layers, pointwise nonlinear functions, and dropout.
         """
-        for layer in self.layers:
-            x = layer(x)
-        return x
-    
+        raise NotImplementedError
+
+
 def train_batch(X, y, model, optimizer, criterion, **kwargs):
     """
     X (n_examples x n_features)
@@ -118,19 +97,7 @@ def train_batch(X, y, model, optimizer, criterion, **kwargs):
     This function should return the loss (tip: call loss.item()) to get the
     loss as a numerical value that is not part of the computation graph.
     """
-    # clear the gradients
-    optimizer.zero_grad()
-    # compute the model output
-    yhat = model(X)
-    # calculate loss
-    loss = criterion(yhat, y)
-    # credit assignment
-    loss.backward()
-    # update model weights
-    optimizer.step()
-    
-    return loss.item()  # Return the loss as a numerical value
-    
+    raise NotImplementedError
 
 
 def predict(model, X):
@@ -159,7 +126,7 @@ def evaluate(model, X, y, criterion):
 
 def plot(epochs, plottables, name='', ylim=None):
     """Plot the plottables over the epochs.
-
+    
     Plottables is a dictionary mapping labels to lists of values.
     """
     plt.clf()

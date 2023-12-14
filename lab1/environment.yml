@@ -4,8 +4,8 @@ dependencies:
   - numpy
   - pillow
   - scikit-learn
-  - pytorch
-  - torchvision
+  - pytorch . 
+  - torchvision .
   - huggingface::transformers
   - notebook
   - nb_conda_kernels
