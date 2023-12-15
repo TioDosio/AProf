@@ -38,7 +38,7 @@ class LinearModel(object):
         return n_correct / n_possible
 
 
-class Perceptron(LinearModel): #falta adicionar o bias?
+class Perceptron(LinearModel):
     def update_weight(self, x_i, y_i, **kwargs):
     
         eta=1
