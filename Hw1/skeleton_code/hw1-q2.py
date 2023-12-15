@@ -69,7 +69,9 @@ class FeedforwardNetwork(nn.Module):
         includes modules for several activation functions and dropout as well.
         """
         super(FeedforwardNetwork, self).__init__()
-        self.layers = nn.ModuleList()
+        
+        self.layers = nn.Sequential()
+
         if activation_type == 'relu':
             self.activation = nn.ReLU()
         elif activation_type == 'tanh':
@@ -82,7 +84,7 @@ class FeedforwardNetwork(nn.Module):
         # Hidden layers
         for _ in range(layers):
             self.layers.append(nn.Linear(hidden_size, hidden_size))
-            self.layers.append(nn.ReLU())
+            self.layers.append(self.activation)
             self.layers.append(nn.Dropout(dropout))
         
         # Output layer
