@@ -13,8 +13,6 @@ import numpy as np
 import utils
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(DEVICE)
-np.random.seed(0)
-torch.manual_seed(0)
 
 # Q2.1
 class LogisticRegression(nn.Module):
@@ -184,11 +182,11 @@ def main():
                         need to change this value for your plots.""")
     parser.add_argument('-batch_size', default=16, type=int,
                         help="Size of training batch.")
-    parser.add_argument('-learning_rate', type=float, default=0.01)
+    parser.add_argument('-learning_rate', type=float, default=0.1)
     parser.add_argument('-l2_decay', type=float, default=0)
-    parser.add_argument('-hidden_size', type=int, default=100)
-    parser.add_argument('-layers', type=int, default=1)
-    parser.add_argument('-dropout', type=float, default=0.3)
+    parser.add_argument('-hidden_size', type=int, default=200)
+    parser.add_argument('-layers', type=int, default=2)
+    parser.add_argument('-dropout', type=float, default=0)
     parser.add_argument('-activation',
                         choices=['tanh', 'relu'], default='relu')
     parser.add_argument('-optimizer',
@@ -279,7 +277,7 @@ def main():
     if opt.model == "logistic_regression":
         ylim = (0., 1.6)
     elif opt.model == "mlp":
-        ylim = (0., 1.2)
+        ylim = (0., 1.4)
     else:
         raise ValueError(f"Unknown model {opt.model}")
     val_acc_rounded = round(test_acc, 4)
